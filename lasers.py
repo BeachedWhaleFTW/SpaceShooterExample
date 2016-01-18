@@ -1,24 +1,33 @@
 import pygame
-from spritesheet_functions import SpriteSheet
+import constants
+import data
 
-basic_laser = (5, 35, 20, 25)
 
 class BasicLaser(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.width = 10
+        self.height = 20
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(constants.GREEN)
+        self.vel = -10
+        self.rect = self.image.get_rect()
+        self.damage = 1
 
-	def __init__(self, sprite_sheet_data):
-		super().__init__()
+    def update(self):
+        self.rect.y += self.vel
+        if pygame.sprite.spritecollideany(self, data.asteroid_list):
+            data.laser_list.remove(self)
+        if self.rect.y + self.height < 0:
+                    data.laser_list.remove(self)
 
-		self.vel = -20
 
-		sprite_sheet = SpriteSheet("lasers.png")
-
-		self.image = sprite_sheet.get_image(sprite_sheet_data[0],
-											sprite_sheet_data[1],
-											sprite_sheet_data[2],
-											sprite_sheet_data[3])
-
-		self.rect = self.image.get_rect()
-
-	def update(self):
-
-		self.rect.y += self.vel
+class HeavyLaser(BasicLaser):
+    def __init__(self):
+        super().__init__()
+        self.width = 20
+        self.height = 25
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(constants.GREEN)
+        self.vel = -5
+        self.damage = 3

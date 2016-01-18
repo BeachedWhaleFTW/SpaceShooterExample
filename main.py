@@ -1,79 +1,81 @@
 import pygame
+import sys
 import constants
 import lasers
 import random
-from background import Stars
+import data
+import background
 from player import Player
-from asteroids import Asteroid
+import asteroids
+
 
 def main():
-	#setup
-	pygame.init()
+    # setup
+    pygame.init()
+    pygame.mouse.set_visible(False)
+    size = (constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT)
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption("Space Shooter")
 
-	pygame.mouse.set_visible(False)
+    # create background
+    create_background(50)
+    # create asteroid field
+    create_asteroids(15)
+    # create player
+    player = Player()
+    data.all_sprites_list.add(player)
+    data.player_list.add(player)
 
-	size = (constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT)
-	screen = pygame.display.set_mode(size)
+    clock = pygame.time.Clock()
 
-	pygame.display.set_caption("Space Shooter")
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-	#init all sprites for start
-	all_sprites_list = pygame.sprite.Group()
-	laser_list = pygame.sprite.Group()
-	background_list = pygame.sprite.Group()
-	player_list = pygame.sprite.Group()
-	asteroid_list = pygame.sprite.Group()
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                create_laser(1, player)
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+                create_laser(2, player)
 
-	all_lists = [background_list, asteroid_list, laser_list,  player_list]
+        data.all_sprites_list.update()
+        screen.fill(constants.BLACK)
 
-	for i in range(25):
-		star = Stars()
-		star.rect.x = random.randrange(constants.SCREEN_WIDTH)
-		star.rect.y = random.randrange(constants.SCREEN_HEIGHT)
-		all_sprites_list.add(star)
-		background_list.add(star)
+        for group in data.all_lists:  # loop to draw player last to avoid background from becoming foreground
+            group.draw(screen)
+        clock.tick(60)
+        pygame.display.flip()
 
-	for i in range(10):
-		asteroid = Asteroid(random.randrange(10, 30), random.randrange(2, 7))
-		asteroid.reset_pos()
-		all_sprites_list.add(asteroid)
-		asteroid_list.add(asteroid)
 
-	player = Player()
-	all_sprites_list.add(player)
-	player_list.add(player)
+def create_laser(type_laser, player):
+    if type_laser == 1:
+        laser = lasers.BasicLaser()
+    elif type_laser == 2:
+        laser = lasers.HeavyLaser()
+    else:
+        laser = lasers.BasicLaser()
+    laser.rect.centerx = player.rect.centerx
+    laser.rect.centery = player.rect.centery
+    data.all_sprites_list.add(laser)
+    data.laser_list.add(laser)
 
-	#stuff for gameloop
-	done = False
 
-	clock = pygame.time.Clock()
+def create_background(n):
+    for i in range(n):
+        star = background.Stars()
+        star.rect.x = random.randrange(constants.SCREEN_WIDTH)
+        star.rect.y = random.randrange(constants.SCREEN_HEIGHT)
+        data.all_sprites_list.add(star)
+        data.background_list.add(star)
 
-	while not done:
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				done = True
-			
-			elif event.type == pygame.MOUSEBUTTONDOWN:
-					laser = lasers.BasicLaser(lasers.basic_laser)
 
-					laser.rect.x = player.rect.x
-					laser.rect.y = player.rect.y
-
-					all_sprites_list.add(laser)
-					laser_list.add(laser)
-		
-		all_sprites_list.update()
-
-		screen.fill(constants.BLACK)
-
-		#loop to draw player last to avoid background from becoming foreground 
-		for list in all_lists:
-			list.draw(screen)
-
-		clock.tick(30)
-		pygame.display.flip()
-
-	pygame.quit()
+def create_asteroids(n):
+    for i in range(n):
+        asteroid = asteroids.Asteroid(random.randrange(40, 100), random.randrange(2, 7))
+        asteroid.reset_pos()
+        data.all_sprites_list.add(asteroid)
+        data.asteroid_list.add(asteroid)
 
 if __name__ == "__main__":
-	main()
+    main()
